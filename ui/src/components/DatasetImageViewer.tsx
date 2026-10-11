@@ -13,6 +13,7 @@ import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { BoundingBoxEditor, parseBoundingBoxes, extractBoxes } from './BoundingBoxOverlay';
 import IdeogramCaptionSidebar, { isIdeogramCaption } from './IdeogramCaptionSidebar';
 import datasetTemplates from '@/helpers/datasetTemplates';
+import { withBase } from '@/utils/basePath';
 
 function safeParse(text: string): any {
   try {
@@ -410,11 +411,11 @@ export default function DatasetImageViewer({
               {imgPath &&
                 (isAudio(imgPath) ? (
                   <div className="w-[500px] h-[500px] max-w-full max-h-[50vh] sm:max-h-[90vh]">
-                    <AudioPlayer src={`/api/img/${encodeFilePathForUrl(imgPath)}`} title={filename} autoPlay />
+                    <AudioPlayer src={withBase(`/api/img/${encodeFilePathForUrl(imgPath)}`)} title={filename} autoPlay />
                   </div>
                 ) : isVideo(imgPath) ? (
                   <video
-                    src={`/api/img/${encodeFilePathForUrl(imgPath)}`}
+                    src={withBase(`/api/img/${encodeFilePathForUrl(imgPath)}`)}
                     className="w-auto h-auto max-w-full max-h-[50vh] sm:max-h-[90vh] object-contain"
                     preload="none"
                     playsInline
@@ -438,7 +439,7 @@ export default function DatasetImageViewer({
                     <TransformComponent>
                       <div className="relative">
                         <img
-                          src={`/api/img/${encodeFilePathForUrl(imgPath)}`}
+                          src={withBase(`/api/img/${encodeFilePathForUrl(imgPath)}`)}
                           alt="Dataset Image"
                           draggable={false}
                           className="w-auto h-auto max-w-full max-h-[50vh] sm:max-h-[90vh] object-contain select-none !pointer-events-auto"
@@ -493,7 +494,7 @@ export default function DatasetImageViewer({
                         <MenuItem>
                           <a
                             className="cursor-pointer px-4 py-1 hover:bg-gray-800 rounded block"
-                            href={`/api/img/${encodeFilePathForUrl(imgPath)}`}
+                            href={withBase(`/api/img/${encodeFilePathForUrl(imgPath)}`)}
                             download={filename}
                           >
                             Download

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { CpuInfo, GPUApiResponse, MonitorHistoryPoint, MonitorInit, MonitorSample } from '@/types';
 import { isAuthorizedState } from '@/utils/api';
 import { historyPointFromSample, MONITOR_HISTORY_LENGTH } from '@/utils/monitorSample';
+import { withBase } from '@/utils/basePath';
 
 export interface MonitorStreamState {
   connected: boolean;
@@ -134,7 +135,7 @@ async function runLoop() {
         if (token) {
           headers['Authorization'] = `Bearer ${token}`;
         }
-        const res = await fetch('/api/monitor', {
+        const res = await fetch(withBase('/api/monitor'), {
           headers,
           cache: 'no-store',
           signal: abortController.signal,

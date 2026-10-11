@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Job } from '@prisma/client';
 import { apiClient } from '@/utils/api';
+import { withBase } from '@/utils/basePath';
 
 interface Props {
   job: Job;
@@ -69,7 +70,7 @@ export default function JobNotes({ job }: Props) {
     const flush = () => {
       if (!loadedRef.current || contentRef.current === savedRef.current) return;
       const token = localStorage.getItem('AI_TOOLKIT_AUTH');
-      fetch(`/api/jobs/${job.id}/notes`, {
+      fetch(withBase(`/api/jobs/${job.id}/notes`), {
         method: 'POST',
         keepalive: true,
         headers: {
