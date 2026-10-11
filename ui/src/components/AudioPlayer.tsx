@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { apiClient } from '@/utils/api';
 import { encodeFilePathForUrl } from '@/utils/basic';
+import { withBase, BASE_PATH } from '@/utils/basePath';
 
 type AudioPlayerProps = {
   src: string;
@@ -47,11 +48,12 @@ function broadcastExclusivePlay(token: string) {
  */
 function albumArtUrlFromSrc(src: string): string {
   const prefix = '/api/img/';
-  if (src.startsWith(prefix)) {
-    return `/api/audio/art/${src.slice(prefix.length)}`;
+  const idx = src.indexOf(prefix);
+  if (idx !== -1 && src.slice(0, idx) === BASE_PATH) {
+    return withBase(`/api/audio/art/${src.slice(idx + prefix.length)}`);
   }
   // Fallback: assume src is a raw file path
-  return `/api/audio/art/${encodeFilePathForUrl(src)}`;
+  return withBase(`/api/audio/art/${encodeFilePathForUrl(src)}`);
 }
 
 export default function AudioPlayer({

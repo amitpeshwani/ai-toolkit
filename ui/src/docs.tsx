@@ -1,6 +1,7 @@
 import React from 'react';
 import { ConfigDoc } from '@/types';
 import { IoFlaskSharp } from 'react-icons/io5';
+import { withBase } from '@/utils/basePath';
 
 const docs: { [key: string]: ConfigDoc } = {
   'config.name': {
@@ -327,7 +328,7 @@ const docs: { [key: string]: ConfigDoc } = {
         actual target, this would make the model learn to hit or overshoot the target instead of falling short.
         <br />
         <br />
-        <img src="/imgs/diff_guidance.png" alt="Differential Guidance Diagram" className="max-w-full mx-auto" />
+        <img src={withBase('/imgs/diff_guidance.png')} alt="Differential Guidance Diagram" className="max-w-full mx-auto" />
       </>
     ),
   },

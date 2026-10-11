@@ -3,7 +3,7 @@ import { createGlobalState } from 'react-global-hooks';
 
 export const isAuthorizedState = createGlobalState(false);
 
-export const apiClient = axios.create();
+export const apiClient = axios.create({ baseURL: process.env.NEXT_PUBLIC_BASE_PATH || '' });
 
 // Add a request interceptor to add token from localStorage
 apiClient.interceptors.request.use(config => {

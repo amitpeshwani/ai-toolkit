@@ -13,6 +13,7 @@ import classNames from 'classnames';
 import { FaCaretDown, FaCaretUp } from 'react-icons/fa';
 import SampleImageViewer from './SampleImageViewer';
 import { openConfirm } from './ConfirmModal';
+import { withBase } from '@/utils/basePath';
 
 interface SampleImagesMenuProps {
   job?: Job | null;
@@ -34,7 +35,7 @@ export const SampleImagesMenu = ({ job }: SampleImagesMenuProps) => {
       const zipPath = res.data.zipPath; // e.g. /mnt/Train2/out/ui/.../samples.zip
       if (!zipPath) throw new Error('No zipPath in response');
 
-      const downloadPath = `/api/files/${encodeFilePathForUrl(zipPath)}`;
+      const downloadPath = withBase(`/api/files/${encodeFilePathForUrl(zipPath)}`);
       const a = document.createElement('a');
       a.href = downloadPath;
       // optional: suggest filename (browser may ignore if server sets Content-Disposition)

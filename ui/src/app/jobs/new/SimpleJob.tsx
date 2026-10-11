@@ -32,6 +32,7 @@ import { FlipHorizontal2, FlipVertical2 } from 'lucide-react';
 import { handleModelArchChange } from './utils';
 import { IoFlaskSharp } from 'react-icons/io5';
 import { isMac } from '@/helpers/basic';
+import { withBase } from '@/utils/basePath';
 
 type Props = {
   jobConfig: JobConfig;
@@ -414,7 +415,7 @@ export default function SimpleJob({
                               read token
                             </a>{' '}
                             and add it on the{' '}
-                            <a href="/settings" className="text-blue-400 hover:text-blue-300 underline">
+                            <a href={withBase('/settings')} className="text-blue-400 hover:text-blue-300 underline">
                               settings page
                             </a>
                             .

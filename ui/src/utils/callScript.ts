@@ -1,4 +1,5 @@
 import { apiClient } from './api';
+import { withBase } from '@/utils/basePath';
 
 export type ScriptArgs = (string | number | boolean)[] | Record<string, string | number | boolean | null | undefined>;
 
@@ -81,7 +82,7 @@ export const callScriptStream = async (
   let finalEvent: StreamEvent | null = null;
 
   try {
-    const response = await fetch('/api/scripts', {
+    const response = await fetch(withBase('/api/scripts'), {
       method: 'POST',
       headers,
       body: JSON.stringify({ script, args: options.args, stream: true }),

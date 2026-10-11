@@ -6,9 +6,13 @@ const versionFile = readFileSync(join(__dirname, '..', 'version.py'), 'utf8');
 const versionMatch = versionFile.match(/VERSION\s*=\s*["']([^"']+)["']/);
 const appVersion = versionMatch ? versionMatch[1] : 'unknown';
 
+const basePath = (process.env.BASE_PATH || '').replace(/\/+$/, '');
+
 const nextConfig: NextConfig = {
+  basePath,
   env: {
     NEXT_PUBLIC_APP_VERSION: appVersion,
+    NEXT_PUBLIC_BASE_PATH: basePath,
   },
   serverExternalPackages: ['macstats', 'osx-temperature-sensor'],
   async rewrites() {

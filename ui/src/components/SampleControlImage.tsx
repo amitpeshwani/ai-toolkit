@@ -7,6 +7,7 @@ import { FaUpload, FaImage, FaTimes } from 'react-icons/fa';
 import { apiClient } from '@/utils/api';
 import { encodeFilePathForUrl } from '@/utils/basic';
 import type { AxiosProgressEvent } from 'axios';
+import { withBase } from '@/utils/basePath';
 
 const VIDEO_EXTS = ['.mp4', '.mov', '.webm', '.mkv', '.avi', '.m4v', '.wmv', '.flv'];
 const AUDIO_EXTS = ['.mp3', '.wav', '.flac', '.ogg'];
@@ -37,8 +38,8 @@ export default function SampleControlImage({
   const backgroundUrl = useMemo(() => {
     if (localPreview) return localPreview;
     // videos preview as a server-generated thumbnail, audio as its waveform art
-    if (src && isAudioPath(src)) return `/api/audio/art/${encodeURIComponent(src)}`;
-    if (src) return `/api/img/${encodeFilePathForUrl(src)}${isVideoPath(src) ? '?thumb=1' : ''}`;
+    if (src && isAudioPath(src)) return withBase(`/api/audio/art/${encodeURIComponent(src)}`);
+    if (src) return withBase(`/api/img/${encodeFilePathForUrl(src)}${isVideoPath(src) ? '?thumb=1' : ''}`);
     return null;
   }, [src, localPreview]);
 

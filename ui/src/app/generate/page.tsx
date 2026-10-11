@@ -40,6 +40,7 @@ import { getGenerateDefaults, GenerateDefaults } from '@/app/jobs/new/options';
 import { useModelArchs } from '@/extensions/modelArchs';
 import GenerateFooter from '@/components/generate/GenerateFooter';
 import LoraBrowserModal, { LoraPick } from '@/components/generate/LoraBrowserModal';
+import { withBase } from '@/utils/basePath';
 
 interface EngineStatus {
   running: boolean;
@@ -361,7 +362,7 @@ function GeneratePageInner() {
   };
   const cardOpen = (key: string) => cards[key] ?? true;
   const toggleCard = (key: string) => setCards(c => ({ ...c, [key]: !(c[key] ?? true) }));
-  const resultUrl = (r: ResultItem) => `/api/files/${encodeFilePathForUrl(r.path)}`;
+  const resultUrl = (r: ResultItem) => withBase(`/api/files/${encodeFilePathForUrl(r.path)}`);
 
   const deleteResults = async (items: ResultItem[]) => {
     const paths = items.map(i => i.path);
@@ -586,7 +587,7 @@ function GeneratePageInner() {
       stream: { latents: 'raw', every_n_steps: 1, max_frames: 0 },
     };
     try {
-      const res = await fetch(proxy('generate'), {
+      const res = await fetch(withBase(proxy('generate')), {
         method: 'POST',
         headers: { ...authHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -620,7 +621,7 @@ function GeneratePageInner() {
     requestIdRef.current = id;
     setStatusLine('Reattaching…');
     try {
-      const res = await fetch(proxy(`stream/${id}`), { headers: authHeaders(), signal: abort.signal });
+      const res = await fetch(withBase(proxy(`stream/${id}`)), { headers: authHeaders(), signal: abort.signal });
       if (!res.ok) throw new Error(res.status === 404 ? 'previous generation is gone' : `HTTP ${res.status}`);
       await consumeStream(res, abort);
     } catch (e: any) {
@@ -961,7 +962,7 @@ function GeneratePageInner() {
                               {/* embedded waveform cover; falls back to the label when the file has none */}
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img
-                                src={`/api/audio/art/${encodeFilePathForUrl(r.path)}`}
+                                src={withBase(`/api/audio/art/${encodeFilePathForUrl(r.path)}`)}
                                 alt=""
                                 className="absolute inset-0 w-full h-full object-cover"
                                 onError={e => {

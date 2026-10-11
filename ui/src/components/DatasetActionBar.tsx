@@ -6,6 +6,7 @@ import { Cog, Download, Captions } from 'lucide-react';
 import { LuLoader } from 'react-icons/lu';
 import { apiClient } from '@/utils/api';
 import { encodeFilePathForUrl } from '@/utils/basic';
+import { withBase } from '@/utils/basePath';
 
 type DatasetZipTarget = 'dataset' | 'dataset_captions';
 
@@ -27,7 +28,7 @@ export default function DatasetActionBar({ datasetName, className }: DatasetActi
 
       // Cache-buster: /api/files serves with a long max-age, and the zip is rebuilt
       // at the same path every time, so a bare URL could hand back a stale download.
-      const downloadPath = `/api/files/${encodeFilePathForUrl(zipPath)}?v=${Date.now()}`;
+      const downloadPath = withBase(`/api/files/${encodeFilePathForUrl(zipPath)}?v=${Date.now()}`);
       const a = document.createElement('a');
       a.href = downloadPath;
       a.download = res.data.fileName || `${datasetName}.zip`;

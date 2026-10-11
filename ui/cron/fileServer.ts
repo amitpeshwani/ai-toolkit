@@ -47,6 +47,22 @@ function argValue(name: string, fallback: number): number {
 const PUBLIC_PORT = argValue('--port', isDev ? 3000 : 8675);
 const UPSTREAM_HOST = '127.0.0.1';
 
+// Optional sub-path the app is served under (e.g. /proxy/8675 on SageMaker).
+// Reverse proxies like jupyter-server-proxy strip the prefix before forwarding,
+// but Next.js (built with basePath) expects it, so it is re-added upstream.
+const BASE_PATH = (process.env.BASE_PATH || '').replace(/\/+$/, '');
+
+function stripBase(url: string): string {
+  if (BASE_PATH && (url === BASE_PATH || url.startsWith(BASE_PATH + '/') || url.startsWith(BASE_PATH + '?'))) {
+    return url.slice(BASE_PATH.length) || '/';
+  }
+  return url;
+}
+
+function addBase(url: string): string {
+  return BASE_PATH ? BASE_PATH + stripBase(url) : url;
+}
+
 const numWorkers = (() => {
   const env = parseInt(process.env.AI_TOOLKIT_FILE_SERVER_WORKERS || '', 10);
   if (!isNaN(env) && env > 0) return env;
@@ -465,7 +481,7 @@ function proxy(req: http.IncomingMessage, res: http.ServerResponse, upstreamPort
     {
       host: UPSTREAM_HOST,
       port: upstreamPort,
-      path: req.url,
+      path: addBase(req.url || '/'),
       method: req.method,
       headers: stripHopByHop(req.headers),
       agent: upstreamAgent,
@@ -521,6 +537,7 @@ function proxy(req: http.IncomingMessage, res: http.ServerResponse, upstreamPort
 
 function startServer(publicPort: number, upstreamPort: number): void {
   const server = http.createServer((req, res) => {
+    req.url = stripBase(req.url || '/');
     const urlPath = (req.url || '').split('?')[0];
     if (req.method === 'GET' || req.method === 'HEAD') {
       const prefix = ['/api/files/', '/api/img/', '/api/audio/art/'].find(p => urlPath.startsWith(p));
@@ -543,7 +560,7 @@ function startServer(publicPort: number, upstreamPort: number): void {
         upstream.destroy();
         return;
       }
-      let raw = `${req.method} ${req.url} HTTP/1.1\r\n`;
+      let raw = `${req.method} ${addBase(req.url || '/')} HTTP/1.1\r\n`;
       for (let i = 0; i < req.rawHeaders.length; i += 2) {
         raw += `${req.rawHeaders[i]}: ${req.rawHeaders[i + 1]}\r\n`;
       }

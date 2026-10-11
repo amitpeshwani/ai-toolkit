@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import { apiClient } from '@/utils/api';
 import { isVideo, isAudio, encodeFilePathForUrl } from '@/utils/basic';
 import useCaptionBatch, { setCachedCaption } from '@/hooks/useCaptionBatch';
+import { withBase } from '@/utils/basePath';
 
 interface DatasetImageCardProps {
   imageUrl: string;
@@ -84,7 +85,7 @@ const DatasetImageCard: React.FC<DatasetImageCardProps> = ({
     let objectUrl: string | null = null;
 
     const timer = window.setTimeout(() => {
-      fetch(`/api/img/${encodeFilePathForUrl(imageUrl)}?thumb=1`, { signal: controller.signal })
+      fetch(withBase(`/api/img/${encodeFilePathForUrl(imageUrl)}?thumb=1`), { signal: controller.signal })
         .then(r => {
           if (!r.ok) throw new Error(`HTTP ${r.status}`);
           if ((r.headers.get('content-type') || '').startsWith('video/')) {
@@ -217,7 +218,7 @@ const DatasetImageCard: React.FC<DatasetImageCardProps> = ({
         >
           {streamVideo && (
             <video
-              src={`/api/img/${encodeFilePathForUrl(imageUrl)}`}
+              src={withBase(`/api/img/${encodeFilePathForUrl(imageUrl)}`)}
               className={classNames('w-full h-full object-contain', {
                 'cursor-zoom-in': !!onImageClick,
               })}
@@ -238,7 +239,7 @@ const DatasetImageCard: React.FC<DatasetImageCardProps> = ({
             >
               {isVisible && !artFailed ? (
                 <img
-                  src={`/api/audio/art/${encodeURIComponent(imageUrl)}`}
+                  src={withBase(`/api/audio/art/${encodeURIComponent(imageUrl)}`)}
                   alt={alt}
                   className="w-full h-full object-contain"
                   onError={() => setArtFailed(true)}

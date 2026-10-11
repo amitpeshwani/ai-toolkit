@@ -12,6 +12,7 @@ import { isVideo, isAudio, isText, encodeFilePathForUrl } from '@/utils/basic';
 import AudioPlayer from './AudioPlayer';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import BoundingBoxOverlay, { parseBoundingBoxes } from './BoundingBoxOverlay';
+import { withBase } from '@/utils/basePath';
 
 interface Props {
   imgPath: string | null; // current image path
@@ -207,7 +208,7 @@ export default function SampleImageViewer({
       return;
     }
     const controller = new AbortController();
-    fetch(`/api/img/${encodeFilePathForUrl(displayedImgPath)}`, { signal: controller.signal })
+    fetch(withBase(`/api/img/${encodeFilePathForUrl(displayedImgPath)}`), { signal: controller.signal })
       .then(r => (r.ok ? r.text() : Promise.reject(new Error(`HTTP ${r.status}`))))
       .then(setSampleText)
       .catch(err => {
@@ -218,7 +219,7 @@ export default function SampleImageViewer({
 
   // control thumbnails: audio has no image thumb, it gets its waveform art
   const thumbSrc = (p: string) =>
-    isAudio(p) ? `/api/audio/art/${encodeURIComponent(p)}` : `/api/img/${encodeFilePathForUrl(p)}?thumb=1`;
+    withBase(isAudio(p) ? `/api/audio/art/${encodeURIComponent(p)}` : `/api/img/${encodeFilePathForUrl(p)}?thumb=1`);
 
   // The sample's prompt is what generated it; if it's an Ideogram bbox-JSON we can
   // overlay the boxes on the generated image. Only on the main image (not controls).
@@ -339,14 +340,14 @@ export default function SampleImageViewer({
                 ) : isAudio(displayedImgPath) ? (
                   <div className="w-[500px] h-[500px] max-w-full sm:max-w-[95vw] max-h-[82vh]">
                     <AudioPlayer
-                      src={`/api/img/${encodeFilePathForUrl(displayedImgPath)}`}
+                      src={withBase(`/api/img/${encodeFilePathForUrl(displayedImgPath)}`)}
                       title={displayedImgPath.replace(/^.*[\\/]/, '')}
                       autoPlay
                     />
                   </div>
                 ) : isVideo(displayedImgPath) ? (
                   <video
-                    src={`/api/img/${encodeFilePathForUrl(displayedImgPath)}`}
+                    src={withBase(`/api/img/${encodeFilePathForUrl(displayedImgPath)}`)}
                     className="w-auto h-auto max-w-full sm:max-w-[95vw] max-h-[82vh] object-contain"
                     preload="none"
                     playsInline
@@ -370,7 +371,7 @@ export default function SampleImageViewer({
                     <TransformComponent>
                       <div className="relative">
                         <img
-                          src={`/api/img/${encodeFilePathForUrl(displayedImgPath)}`}
+                          src={withBase(`/api/img/${encodeFilePathForUrl(displayedImgPath)}`)}
                           alt="Sample Image"
                           draggable={false}
                           className="w-auto h-auto max-w-full sm:max-w-[95vw] max-h-[82vh] object-contain select-none !pointer-events-auto"
@@ -467,7 +468,7 @@ export default function SampleImageViewer({
                       <MenuItem>
                         <a
                           className="cursor-pointer px-4 py-1 hover:bg-gray-800 rounded block"
-                          href={`/api/img/${encodeFilePathForUrl(imgPath)}`}
+                          href={withBase(`/api/img/${encodeFilePathForUrl(imgPath)}`)}
                           download={imgPath.replace(/^.*[\\/]/, '')}
                         >
                           Download

@@ -1,10 +1,11 @@
 'use client';
 
 import { useTheme } from './ThemeProvider';
+import { withBase } from '@/utils/basePath';
 
 const ThemeLogo = () => {
   const { theme } = useTheme();
-  const src = theme === 'dark' ? '/ostris_logo.png' : '/ostris_logo_black.png';
+  const src = withBase(theme === 'dark' ? '/ostris_logo.png' : '/ostris_logo_black.png');
 
   return <img src={src} alt="Ostris AI Toolkit" className="w-auto h-7 mr-3 inline" />;
 };
