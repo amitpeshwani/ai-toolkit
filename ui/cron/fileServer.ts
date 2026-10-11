@@ -60,7 +60,23 @@ function stripBase(url: string): string {
 }
 
 function addBase(url: string): string {
-  return BASE_PATH ? BASE_PATH + stripBase(url) : url;
+  if (!BASE_PATH) return url;
+  const bare = stripBase(url);
+  // Next redirects `/base/` to `/base` (trailing slash), which would loop
+  // behind a proxy that re-adds the prefix, so send the root without a slash.
+  if (bare === '/' || bare.startsWith('/?')) return BASE_PATH + bare.slice(1);
+  return BASE_PATH + bare;
+}
+
+// Proxies like jupyter-server-proxy prepend the prefix to absolute `Location`
+// headers themselves, so strip it here to avoid /base/base.
+function stripBaseFromRedirect(headers: http.IncomingHttpHeaders): http.IncomingHttpHeaders {
+  if (!BASE_PATH) return headers;
+  if (typeof headers.location === 'string') headers.location = stripBase(headers.location);
+  if (typeof headers.refresh === 'string') {
+    headers.refresh = headers.refresh.replace(/(url=)(\S+)/i, (_m, a, u) => a + stripBase(u));
+  }
+  return headers;
 }
 
 const numWorkers = (() => {
@@ -492,7 +508,7 @@ function proxy(req: http.IncomingMessage, res: http.ServerResponse, upstreamPort
         upstreamRes.resume();
         return;
       }
-      res.writeHead(upstreamRes.statusCode || 502, stripHopByHop(upstreamRes.headers));
+      res.writeHead(upstreamRes.statusCode || 502, stripBaseFromRedirect(stripHopByHop(upstreamRes.headers)));
       pipeline(upstreamRes, res, () => { });
     },
   );
