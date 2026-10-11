@@ -9,6 +9,10 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   const monitor = startMonitor();
+  // Polling fallback for proxies that buffer SSE: one JSON `init` payload.
+  if (new URL(request.url).searchParams.has('snapshot')) {
+    return Response.json(monitor.getInit(), { headers: { 'Cache-Control': 'no-store' } });
+  }
   const encoder = new TextEncoder();
   let unsubscribe: (() => void) | null = null;
 

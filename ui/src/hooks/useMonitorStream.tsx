@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { CpuInfo, GPUApiResponse, MonitorHistoryPoint, MonitorInit, MonitorSample } from '@/types';
 import { isAuthorizedState } from '@/utils/api';
 import { historyPointFromSample, MONITOR_HISTORY_LENGTH } from '@/utils/monitorSample';
-import { withBase } from '@/utils/basePath';
+import { BASE_PATH, withBase } from '@/utils/basePath';
 
 export interface MonitorStreamState {
   connected: boolean;
@@ -41,6 +41,12 @@ const listeners = new Set<(s: MonitorStreamState) => void>();
 let refCount = 0;
 let running = false;
 let abortController: AbortController | null = null;
+// Some reverse proxies (e.g. SageMaker's) buffer SSE so no byte ever arrives.
+// When served under a base path and the stream stays silent, fall back to
+// polling a JSON snapshot instead.
+const STREAM_STALL_MS = 5000;
+const POLL_INTERVAL_MS = 2000;
+let streamBlocked = false;
 
 const CHANNEL_NAME = 'ai-toolkit-monitor-stream';
 // Leader is presumed gone after this much silence; forwarded samples arrive
@@ -129,11 +135,32 @@ async function runLoop() {
   try {
     while (refCount > 0 && role === 'leader') {
       abortController = new AbortController();
+      let stallTimer: ReturnType<typeof setTimeout> | null = null;
       try {
         const headers: Record<string, string> = { Accept: 'text/event-stream' };
         const token = localStorage.getItem('AI_TOOLKIT_AUTH');
         if (token) {
           headers['Authorization'] = `Bearer ${token}`;
+        }
+        if (streamBlocked) {
+          const snap = await fetch(withBase('/api/monitor?snapshot=1'), {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+            cache: 'no-store',
+            signal: abortController.signal,
+          });
+          if (!snap.ok) throw new Error(`monitor snapshot returned HTTP ${snap.status}`);
+          const data = await snap.text();
+          applyEvent('init', data);
+          post({ type: 'event', id: tabId, event: 'init', data });
+          await new Promise(r => setTimeout(r, POLL_INTERVAL_MS));
+          continue;
+        }
+        if (BASE_PATH) {
+          const controller = abortController;
+          stallTimer = setTimeout(() => {
+            streamBlocked = true;
+            controller.abort();
+          }, STREAM_STALL_MS);
         }
         const res = await fetch(withBase('/api/monitor'), {
           headers,
@@ -154,6 +181,10 @@ async function runLoop() {
         let buffer = '';
         for (;;) {
           const { done, value } = await reader.read();
+          if (stallTimer) {
+            clearTimeout(stallTimer);
+            stallTimer = null;
+          }
           if (done) break;
           buffer += decoder.decode(value, { stream: true });
           let sep;
@@ -164,6 +195,7 @@ async function runLoop() {
           }
         }
       } catch (err) {
+        if (stallTimer) clearTimeout(stallTimer);
         if (!abortController.signal.aborted) {
           console.error(`Monitor stream error: ${err instanceof Error ? err.message : String(err)}`);
         }
